@@ -1,0 +1,9 @@
+Excercise
+1		Done
+2		Done
+3		Done
+4		IP
+	HeapPageID	still need to implement hashCode()
+	RecordID	need to implement hashCode()
+5		
+6		
