@@ -73,9 +73,21 @@ public class BufferPool {
         throws TransactionAbortedException, DbException {
         // some code goes here
         
-        for (Page p : pool) {
-	    
+        // If the pool is full, throw DbException
+        if (index == (limit - 1))
+	    throw new DbException();
+        
+        // Otherwise, see if the page is in the pool.
+        for (int i = 0; i < index + 1; i++) {
+	    // If the page is in the pool, return it.
+	    if (pool[i].getId().equals(pid))
+		return pool[i];
         }
+        
+        // If the page was not found, add it to the buffer at location
+        // index + 1 then increment index.
+        // NOT DONE
+        Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
         return null;
     }
 

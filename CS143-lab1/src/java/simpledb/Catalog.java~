@@ -107,7 +107,7 @@ public class Catalog {
 		return t.td;
         }
         throw new NoSuchElementException();
-        return null;
+        //return null;
     }
 
     /**
@@ -124,7 +124,7 @@ public class Catalog {
 		return t.file;
         }
         throw new NoSuchElementException();
-        return null;
+        //return null;
     }
 
     public String getPrimaryKey(int tableid) {
@@ -134,7 +134,7 @@ public class Catalog {
 		return t.primaryKey;
         }
         throw new NoSuchElementException();
-        return null;
+        //return null;
     }
 
     public Iterator<Integer> tableIdIterator() {
@@ -169,7 +169,7 @@ public class Catalog {
 		return t.name;
         }
         throw new NoSuchElementException();
-        return null;
+        //return null;
     }
     
     /** Delete all tables from the catalog */
