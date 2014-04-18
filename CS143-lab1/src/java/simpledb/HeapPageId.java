@@ -63,6 +63,9 @@ public class HeapPageId implements PageId {
         if (o == null)
 	    return false;
         
+        if (!(o instanceof HeapPageId))
+	    return false;
+	    
         // Convert object o into a heapPageID
         HeapPageId hp = (HeapPageId)o;
         

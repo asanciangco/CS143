@@ -75,7 +75,7 @@ public class BufferPool {
         
         // If the pool is full, throw DbException
         if (_index >= (_pageLimit - 1))
-	    throw new DbException();
+	    throw new DbException("Lab1");
         
         // Otherwise, see if the page is in the pool.
         for (int i = 0; i < _index + 1; i++) {
@@ -89,7 +89,7 @@ public class BufferPool {
         // NOT DONE
         // Gets catalog -> dbFile(w/ tableid) -> then gets the page number
         Page p = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
-        _pool[++index] = p;
+        _pool[++_index] = p;
         return p;
     }
 

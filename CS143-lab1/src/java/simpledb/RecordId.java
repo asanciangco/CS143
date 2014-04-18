@@ -61,7 +61,7 @@ public class RecordId implements Serializable {
 	    return false;
         
         RecordId rid = (RecordId)o;
-        if (rid.tupleno() == _tupleNum && rid.getPageId() == _pid)
+        if (rid.tupleno() == _tupleNum && rid.getPageId().equals(_pid))
 	    return true;
 	    
 	return false;
@@ -76,8 +76,8 @@ public class RecordId implements Serializable {
     @Override
     public int hashCode() {
         // some code goes here
-        throw new UnsupportedOperationException("implement this");
-
+        // DONE
+        return (("" + _tupleNum) + ("" + _pid.hashCode())).hashCode();
     }
 
 }
