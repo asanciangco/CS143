@@ -27,11 +27,11 @@ public class BufferPool {
     public static final int DEFAULT_PAGES = 50;
 
     // max number of cached pages
-    private int pageLimit;
+    private int _pageLimit;
     // tracker of how many pages are currently in the bufferPool. Should really only
     // be used for the lite implementation of Lab1
-    private int index;
-    private Page[] pool;
+    private int _numPages;
+    private Page[] _pool;
     
     /**
      * Creates a BufferPool that caches up to numPages pages.
@@ -41,8 +41,8 @@ public class BufferPool {
     public BufferPool(int numPages) {
         // some code goes here
         // DONE
-        pageLimit = numPages;
-        pool = new Page[numPages];
+        _pageLimit = numPages;
+        _pool = new Page[numPages];
     }
     
     public static int getPageSize() {
@@ -73,10 +73,28 @@ public class BufferPool {
         throws TransactionAbortedException, DbException {
         // some code goes here
         
-        for (Page p : pool) {
+        // If the pool is full, throw DbException
+        if (_numPages >= _pageLimit)
+	    throw new DbException("Lab1");
+        
+        // Otherwise, see if the page is in the pool.
+        for (int i = 0; i < _numPages; i++) {
 	    
+	    if (_pool[i] == null)
+		System.out.println("element " + i + " of " + _numPages + " is null");
+	    
+	    // If the page is in the pool, return it.
+	    if (_pool[i].getId().equals(pid))
+		return _pool[i];
         }
-        return null;
+        
+        // If the page was not found, add it to the buffer at location
+        // _numPages then increment _numPages.
+        // NOT DONE
+        // Gets catalog -> dbFile(w/ tableid) -> then gets the page number
+        Page p = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
+        _pool[_numPages++] = p;
+        return p;
     }
 
     /**

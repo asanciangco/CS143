@@ -61,7 +61,7 @@ public class RecordId implements Serializable {
 	    return false;
         
         RecordId rid = (RecordId)o;
-        if (rid.tupleno() == _tupleNum && rid.getPageId().equals(_pid))
+        if (rid.tupleno() == _tupleNum && rid.getPageId() == _pid)
 	    return true;
 	    
 	return false;

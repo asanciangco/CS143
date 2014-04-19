@@ -282,7 +282,6 @@ public class HeapPage implements Page {
      */
     public int getNumEmptySlots() {
         // some code goes here
-        // DONE
         int limit = 0;
         int available = numSlots;
         for (int i = 0; i < header.length; i++) {
@@ -325,7 +324,7 @@ public class HeapPage implements Page {
 	    private int index = 0;
 	    
 	    public boolean hasNext() {
-		return (index < tuples.length) && (tuples[index] != null);
+		return index < tuples.length;
 	    }
 	    
 	    public Tuple next() {

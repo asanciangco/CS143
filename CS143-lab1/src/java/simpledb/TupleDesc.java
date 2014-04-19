@@ -69,7 +69,6 @@ public class TupleDesc implements Serializable {
     // Member variables
     private static final long serialVersionUID = 1L;
     private TDItem[] _itemArray;
-    private int _size;
     
     /**
      * Create a new TupleDesc with typeAr.length fields with fields of the
@@ -91,11 +90,7 @@ public class TupleDesc implements Serializable {
         }
         
         // calculate size
-        int tempSize = 0;
-        for (int i = 0; i < _itemArray.length; i++) {
-	    tempSize += _itemArray[i].fieldType.getLen();
-        }
-        _size = tempSize;
+        
         
     }
     
@@ -174,7 +169,7 @@ public class TupleDesc implements Serializable {
         // some code goes here
         // DONE
         for (int i = 0; i < _itemArray.length; i++) {
-	    if (name.equals(_itemArray[i].fieldName))
+	    if (_itemArray[i].fieldName.equals(name))
 		return i;
         }
         throw new NoSuchElementException();
@@ -187,7 +182,11 @@ public class TupleDesc implements Serializable {
     public int getSize() {
         // some code goes here
         // DONE
-        return _size;
+        int tempSize = 0;
+        for (int i = 0; i < _itemArray.length; i++) {
+	    tempSize += _itemArray[i].fieldType.getLen();
+        }
+        return tempSize;
     }
 
     /**
@@ -236,10 +235,13 @@ public class TupleDesc implements Serializable {
     public boolean equals(Object o) {
         // some code goes here
         // DONE
+        if (o == null || !(o instanceof TupleDesc))
+	    return false;
+        
         TupleDesc td = (TupleDesc) o;
         
         // return false if they are different lengths
-        if (td.getSize() != _size || td.numFields() != numFields())
+        if (td.getSize() != getSize() || td.numFields() != numFields())
 	    return false;
         
         for (int i = 0; i < numFields(); i++) {

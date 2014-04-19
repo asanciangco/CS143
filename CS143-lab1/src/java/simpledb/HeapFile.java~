@@ -47,6 +47,9 @@ public class HeapFile implements DbFile {
 		   
 	    // Set the _it iterator to the iterator from the first page
 	    _it = p.iterator();
+	    
+	    if (_it == null)
+		System.out.println("it failed");
 	}
 	
 	public boolean hasNext() throws DbException, TransactionAbortedException {
