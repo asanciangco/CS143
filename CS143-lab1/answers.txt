@@ -1,0 +1,10 @@
+Lab 1 Write Up
+  Alex Sanciangco
+  704050064
+  CS 143
+
+Lab Partner:
+  Nick Westman
+
+Design Decisions:
+  
