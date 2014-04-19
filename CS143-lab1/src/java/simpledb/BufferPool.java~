@@ -89,7 +89,7 @@ public class BufferPool {
         // NOT DONE
         // Gets catalog -> dbFile(w/ tableid) -> then gets the page number
         Page p = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
-        _pool[++index] = p;
+        _pool[++_index] = p;
         return p;
     }
 

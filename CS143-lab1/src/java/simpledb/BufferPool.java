@@ -78,7 +78,7 @@ public class BufferPool {
 	    throw new DbException("Lab1");
         
         // Otherwise, see if the page is in the pool.
-        for (int i = 0; i < _index + 1; i++) {
+        for (int i = 0; i <= _index; i++) {
 	    // If the page is in the pool, return it.
 	    if (_pool[i].getId().equals(pid))
 		return _pool[i];
