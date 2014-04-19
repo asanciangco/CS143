@@ -1,4 +1,8 @@
-CS143
+Nick Westman and Alex Sanciangco
+Spring 2014
+CS143 - Databases
+
+
 =====
 
 Databases Class @ UCLA
