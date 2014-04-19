@@ -47,9 +47,6 @@ public class HeapFile implements DbFile {
 		   
 	    // Set the _it iterator to the iterator from the first page
 	    _it = p.iterator();
-	    
-	    if (_it == null)
-		System.out.println("it failed");
 	}
 	
 	public boolean hasNext() throws DbException, TransactionAbortedException {
@@ -94,7 +91,9 @@ public class HeapFile implements DbFile {
 	    throw new NoSuchElementException();
 	}
 	public void rewind() throws DbException, TransactionAbortedException {
-	    
+	    close();
+	    _pageIndex = 0;
+	    open();
 	}
 	
 	public void close(){
@@ -217,11 +216,7 @@ public class HeapFile implements DbFile {
     // see DbFile.java for javadocs
     public DbFileIterator iterator(TransactionId tid) {
         // some code goes here
-        
-        BufferPool bp = Database.getBufferPool();
-        
-        //public class DbFileIterator implements 
-        
+        // DONE
         return new HeapFileIterator(tid);
     }
 

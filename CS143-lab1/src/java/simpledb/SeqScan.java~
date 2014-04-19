@@ -40,9 +40,9 @@ public class SeqScan implements DbIterator {
         _tableId = tableid;
         _tableAlias = tableAlias;
         
-        DbFile dbf = Database.getCatalog().getDatabaseFile(_tableId);
+        DbFile dbf = Database.getCatalog().getDatabaseFile(tableid);
         
-        _it = dbf.iterator(_tid);
+        _it = dbf.iterator();
     }
 
     /**
