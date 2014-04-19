@@ -30,7 +30,7 @@ public class BufferPool {
     private int _pageLimit;
     // tracker of how many pages are currently in the bufferPool. Should really only
     // be used for the lite implementation of Lab1
-    private int _index;
+    private int _numPages;
     private Page[] _pool;
     
     /**
@@ -74,22 +74,26 @@ public class BufferPool {
         // some code goes here
         
         // If the pool is full, throw DbException
-        if (_index >= (_pageLimit - 1))
+        if (_numPages >= _pageLimit)
 	    throw new DbException("Lab1");
         
         // Otherwise, see if the page is in the pool.
-        for (int i = 0; i < _index + 1; i++) {
+        for (int i = 0; i < _numPages; i++) {
+	    
+	    if (_pool[i] == null)
+		System.out.println("element " + i + " of " + _numPages + " is null");
+	    
 	    // If the page is in the pool, return it.
 	    if (_pool[i].getId().equals(pid))
 		return _pool[i];
         }
         
         // If the page was not found, add it to the buffer at location
-        // _index + 1 then increment _index.
+        // _numPages then increment _numPages.
         // NOT DONE
         // Gets catalog -> dbFile(w/ tableid) -> then gets the page number
         Page p = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
-        _pool[++_index] = p;
+        _pool[_numPages++] = p;
         return p;
     }
 
