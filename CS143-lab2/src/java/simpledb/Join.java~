@@ -201,7 +201,7 @@ public class Join extends Operator {
 			return mergeTuples(outerPos, innerPos);
 		}	
 		_c2.rewind();
-	} while(_c1.hasNext() && ((outerPos = _c1.next()) != null));
+	} while(_c1.hasNext() && (outerPos = _c1.next()));
 	return null;
     }
 

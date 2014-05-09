@@ -86,7 +86,7 @@ public class Filter extends Operator {
     public DbIterator[] getChildren() {
         // some code goes here
         // DONE
-        DbIterator[] temp = {_child};
+        DBIterator[] temp = {_child};
         return temp;
     }
 

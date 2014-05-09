@@ -49,6 +49,7 @@ public class JoinPredicate implements Serializable {
 	} catch (Exception e) {
 	    return false;
 	}
+        return false;		// Should never reach here.
     }
     
     public int getField1()
