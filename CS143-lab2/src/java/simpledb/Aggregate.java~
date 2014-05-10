@@ -45,15 +45,14 @@ public class Aggregate extends Operator {
 	_afield = afield;
 	_gfield = gfield;
 	_aop = aop;
+	_gfieldtype = _child.getTupleDesc().getFieldType(_gfield);
 	if(_gfield == Aggregator.NO_GROUPING)
-	    _gfieldtype = null;
-	else
-	    _gfieldtype = _child.getTupleDesc().getFieldType(_gfield);
+	  _gfieldtype = null;
 	  
 	if(_child.getTupleDesc().getFieldType(_afield) == Type.STRING_TYPE)
-	    _aggr = new StringAggregator(_gfield, _gfieldtype, _afield, _aop);
+	  _aggr = new StringAggregator(_gfield, _gfieldtype, _afield, _aop);
 	else
-	    _aggr = new IntegerAggregator(_gfield, _gfieldtype, _afield, _aop);
+	  _aggr = new IntegerAggregator(_gfield, _gfieldtype, _afield, _aop);
     }
 
     /**

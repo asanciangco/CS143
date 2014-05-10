@@ -194,14 +194,15 @@ public class Join extends Operator {
 
 	Tuple innerPos;
 	do {
-		while (_c2.hasNext()) {
+		while (_c2.hasNext()) {		// nested loop portion
 		    innerPos = _c2.next();
 		    
 		    if(_jp.filter(outerPos, innerPos))
 			return mergeTuples(outerPos, innerPos);
 		}	
 		_c2.rewind();
-	} while(_c1.hasNext() && (outerPos = _c1.next()));
+	} while(_c1.hasNext() && ((outerPos = _c1.next()) != null)); 	// This "outerPos" is necessary since function
+									// can return before done traversing inner loop.
 	return null;
     }
 

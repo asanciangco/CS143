@@ -1,47 +1,39 @@
 package simpledb;
 
+import java.io.IOException;
+
 /**
- * Inserts tuples read from the child operator into the tableid specified in the
- * constructor
+ * The delete operator. Delete reads tuples from its child operator and removes
+ * them from the table they belong to.
  */
-public class Insert extends Operator {
+public class Delete extends Operator {
 
     private static final long serialVersionUID = 1L;
     private TransactionId _tid;
     private DbIterator _child;
-    private int _tableId;
-    private boolean called;
     private TupleDesc _td;
+    private boolean _deleted;
+    
     /**
-     * Constructor.
+     * Constructor specifying the transaction that this delete belongs to as
+     * well as the child to read from.
      * 
      * @param t
-     *            The transaction running the insert.
+     *            The transaction this delete runs in
      * @param child
-     *            The child operator from which to read tuples to be inserted.
-     * @param tableid
-     *            The table in which to insert tuples.
-     * @throws DbException
-     *             if TupleDesc of child differs from table into which we are to
-     *             insert.
+     *            The child operator from which to read tuples for deletion
      */
-    public Insert(TransactionId t, DbIterator child, int tableid)
-            throws DbException {
+    public Delete(TransactionId t, DbIterator child) {
         // some code goes here
         // DONE
-        
         _tid = t;
         _child = child;
-        _tableId = tableid;
-	
-	Type[]   types  = new Type[1];
-	String[] fields = new String[1];
+        
+        Type[]   types	= new Type[1];
+	String[] fields	= new String[1];
 	types[0]  = Type.INT_TYPE;
 	fields[0] = "Count";
 	_td = new TupleDesc(types, fields);
-	
-        if(!_child.getTupleDesc().equals(Database.getCatalog().getTupleDesc(tableid)))
-	    throw new DbException("Error: Mismatching tupleDesc");
     }
 
     public TupleDesc getTupleDesc() {
@@ -54,8 +46,8 @@ public class Insert extends Operator {
         // some code goes here
         // DONE
         _child.open();
+        _deleted = false;
         super.open();
-        called = false;
     }
 
     public void close() {
@@ -72,47 +64,41 @@ public class Insert extends Operator {
     }
 
     /**
-     * Inserts tuples read from child into the tableid specified by the
-     * constructor. It returns a one field tuple containing the number of
-     * inserted records. Inserts should be passed through BufferPool. An
-     * instances of BufferPool is available via Database.getBufferPool(). Note
-     * that insert DOES NOT need check to see if a particular tuple is a
-     * duplicate before inserting it.
+     * Deletes tuples as they are read from the child operator. Deletes are
+     * processed via the buffer pool (which can be accessed via the
+     * Database.getBufferPool() method.
      * 
-     * @return A 1-field tuple containing the number of inserted records, or
-     *         null if called more than once.
+     * @return A 1-field tuple containing the number of deleted records.
      * @see Database#getBufferPool
-     * @see BufferPool#insertTuple
+     * @see BufferPool#deleteTuple
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         // some code goes here
-        // DONE
-        if (called || !_child.hasNext())
-	    return null;
-	
 	try {
-	    called = true;
+	    if (_deleted)
+		return null;
+	
 	    BufferPool bp  = Database.getBufferPool();
 	    int count = 0;
 	    
 	    Tuple t;
 	    while (_child.hasNext()) {
 		t = _child.next();
-		bp.insertTuple(_tid, _tableId, t);
+		bp.deleteTuple(_tid, t);
 		count++;
 	    }
 	    Tuple ret = new Tuple(_td);
 	    ret.setField(0, new IntField(count));
 	    return ret;
 	} catch (Exception e) {
-	    throw new DbException("Error: Could not insert tuples. " + e);
+	    throw new DbException("Error (delete): Could not delete tuples. " + e);
 	}
     }
 
     @Override
     public DbIterator[] getChildren() {
         // some code goes here
-        //DONE
+        // DONE
         DbIterator[] children = {_child};
         return children;
     }
@@ -123,4 +109,5 @@ public class Insert extends Operator {
         // DONE
         _child = children[0];
     }
+
 }

@@ -162,6 +162,8 @@ public class IntegerAggregator implements Aggregator {
         
         if(_gbfield == Aggregator.NO_GROUPING)
         {
+	    if (true)
+		System.out.println("AVG No group");
 	    Tuple t = new Tuple(_td);
 	    t.setField(0, new IntField(_masterAH.value(_op)));
 	    tups.add(t);

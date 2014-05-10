@@ -188,21 +188,27 @@ public class Join extends Operator {
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         // some code goes here
-        
-        if(outerPos == null)
-	    return null;
+        try {
+	    if(outerPos == null)
+		return null;
 
-	Tuple innerPos;
-	do {
-		while (_c2.hasNext()) {
-		    innerPos = _c2.next();
-		    
-		    if(_jp.filter(outerPos, innerPos))
-			return mergeTuples(outerPos, innerPos);
-		}	
-		_c2.rewind();
-	} while(_c1.hasNext() && ((outerPos = _c1.next()) != null));
-	return null;
+	    Tuple innerPos;
+	    do {
+		    while (_c2.hasNext()) {		// nested loop portion
+			innerPos = _c2.next();
+			
+			if(_jp.filter(outerPos, innerPos))
+			    return mergeTuples(outerPos, innerPos);
+		    }	
+		    _c2.rewind();
+	    } while(_c1.hasNext() && ((outerPos = _c1.next()) != null)); 	// This "outerPos" is necessary since function
+									    // can return before done traversing inner loop.
+	    return null;
+	} catch (TransactionAbortedException tae) {
+	    throw new TransactionAbortedException();
+	} catch (DbException de){
+	    throw new DbException("Error: fetchNext");
+	}
     }
 
     @Override
