@@ -207,7 +207,7 @@ public class BufferPool {
 		p.markDirty(true, tid);
     	}
     	catch(DbException d){
-	    throw new DbException("Error: BufferPool Cannot delete tuple " + e);
+	    throw new DbException("Error: BufferPool Cannot delete tuple " + d);
     	}
     	catch(IOException i){
 	    throw new IOException("");

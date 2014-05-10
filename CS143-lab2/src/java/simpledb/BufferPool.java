@@ -77,10 +77,6 @@ public class BufferPool {
         // some code goes here
         // DONE
         
-        //////////////////////////////
-        //// NEED TO REWRITE THIS ////
-        //////////////////////////////
-        
         Page page = _pool.get(pid);
         if (page != null)
 	    return page;			// Simple case, it's in the BufferPool so return it.

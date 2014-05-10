@@ -89,6 +89,7 @@ public class Delete extends Operator {
 	    }
 	    Tuple ret = new Tuple(_td);
 	    ret.setField(0, new IntField(count));
+	    _deleted = true;
 	    return ret;
 	} catch (Exception e) {
 	    throw new DbException("Error (delete): Could not delete tuples. " + e);

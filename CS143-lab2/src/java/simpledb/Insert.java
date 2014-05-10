@@ -87,7 +87,7 @@ public class Insert extends Operator {
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         // some code goes here
         // DONE
-        if (called || !_child.hasNext())
+        if (called)
 	    return null;
 	
 	try {
