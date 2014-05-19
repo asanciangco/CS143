@@ -1,0 +1,181 @@
+package simpledb;
+
+import java.util.*;
+
+/**
+ * Knows how to compute some aggregate over a set of IntFields.
+ */
+public class IntegerAggregator implements Aggregator {
+
+    private static final long serialVersionUID = 1L;
+    private int _gbfield;
+    private Type _gbfieldtype;
+    private int _afield;
+    private Op _op;
+    private TupleDesc _td;
+    
+    private HashMap<Field, AggregateHelper> _groups;
+    private AggregateHelper _masterAH;
+    
+    class AggregateHelper {
+	public int _count;
+	public int _sum;
+	public int _min;
+	public int _max;
+	public int _avg;
+	
+	public AggregateHelper (int initialValue) {
+	    _count 	= 1;
+	    _sum 	= initialValue;
+	    _min	= initialValue;
+	    _max	= initialValue;
+	    _avg	= _sum / _count;
+	}
+	
+	// Will return the appropriate value depending on the operator
+	public int value(Op op) {
+	    switch (op) {
+		case COUNT: 	return _count;
+		case SUM:	return _sum;
+		case MIN:	return _min;
+		case MAX:	return _max;
+		case AVG:	return _avg;
+		default: return -1;
+	    }
+	}
+    }
+    
+    /**
+     * Aggregate constructor
+     * 
+     * @param gbfield
+     *            the 0-based index of the group-by field in the tuple, or
+     *            NO_GROUPING if there is no grouping
+     * @param gbfieldtype
+     *            the type of the group by field (e.g., Type.INT_TYPE), or null
+     *            if there is no grouping
+     * @param afield
+     *            the 0-based index of the aggregate field in the tuple
+     * @param what
+     *            the aggregation operator
+     */
+
+    public IntegerAggregator(int gbfield, Type gbfieldtype, int afield, Op what) {
+        // some code goes here
+        // DONE
+        _gbfield = gbfield;
+        _gbfieldtype = gbfieldtype;
+        _afield = afield;
+        _op = what;
+        
+        _groups = new HashMap<Field, AggregateHelper>();
+        
+        Type[] t;
+        String[] s;
+        
+        if(_gbfieldtype == null) {
+	    t = new Type[1];
+	    s = new String[1];
+	    
+	    t[0] = Type.INT_TYPE;
+	    s[0] = "Aggregate";
+        } else {
+	    t = new Type[2]; 
+	    s = new String[2];
+	    
+	    t[0] = _gbfieldtype;
+	    s[0] = "Group Field"; 
+	    
+	    t[1] = Type.INT_TYPE;
+	    s[1] = "Aggregate";
+        }
+        _masterAH = null;
+        _td = new TupleDesc(t, s);
+    }
+
+    /**
+     * Merge a new tuple into the aggregate, grouping as indicated in the
+     * constructor
+     * 
+     * @param tup
+     *            the Tuple containing an aggregate field and a group-by field
+     */
+    public void mergeTupleIntoGroup(Tuple tup) {
+        // some code goes here
+        // DONE
+        
+        // Safe to assume this is an IntField since this is an IntegerAggregator
+        int value = ((IntField)tup.getField(_afield)).getValue();
+        
+        if (_gbfield == Aggregator.NO_GROUPING) {	// not grouping
+	    if (_masterAH == null)
+		_masterAH = new AggregateHelper(value);	// Lazy instantiation
+	    else
+		updateValues(value, _masterAH);
+	    return;
+        }
+        
+        Field f = tup.getField(_gbfield);
+        if (_groups.containsKey(f))
+	    updateValues(value, _groups.get(f));
+	else // Need to make a new group in the HashMap
+	    _groups.put(f, new AggregateHelper(value));
+    }
+
+    /**
+     * Update private variables based on <code>value</code> from tuple. 
+     * 
+     * @param value
+     *            The value of the tuple updating this aggregator.
+     */
+    private void updateValues(int value, AggregateHelper ah) {
+	// Update count
+	ah._count++;
+	
+	// Update sum
+        ah._sum += value;
+        
+        // Update min
+        if (value < ah._min)
+	    ah._min = value;
+	    
+	// Update max
+	if (value > ah._max)
+	    ah._max = value;
+	    
+	// Update avg
+        ah._avg = ah._sum / ah._count;
+    }
+    
+    /**
+     * Create a DbIterator over group aggregate results.
+     * 
+     * @return a DbIterator whose tuples are the pair (groupVal, aggregateVal)
+     *         if using group, or a single (aggregateVal) if no grouping. The
+     *         aggregateVal is determined by the type of aggregate specified in
+     *         the constructor.
+     */
+    public DbIterator iterator() {
+        // some code goes here
+        // DONE
+        ArrayList<Tuple> tups = new ArrayList<Tuple>();
+        
+        if(_gbfield == Aggregator.NO_GROUPING)
+        {
+	    Tuple t = new Tuple(_td);
+	    t.setField(0, new IntField(_masterAH.value(_op)));
+	    tups.add(t);
+        } else {
+	    Iterator it = _groups.keySet().iterator();
+	    while (it.hasNext()) {
+		Field f = (Field)it.next();
+		Tuple t = new Tuple(_td);
+		t.setField(0, f);
+		t.setField(1, new IntField(_groups.get(f).value(_op)));
+		tups.add(t);
+	    }
+	}
+	return new TupleIterator(_td, tups);
+    }
+
+}

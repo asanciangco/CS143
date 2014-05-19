@@ -1,0 +1,40 @@
+CS 143: Intro to Databases
+
+Lab 2 Write Up
+  Alex Sanciangco
+  704050064
+  Nick Westman
+  903996152
+
+  
+DESIGN DECISIONS:
+  Exercise 1:
+    We built the filter and join classes off of the DbIterator, they were fairly starightforward.
+
+    There were a few issues in join with the nested loop because of the fetchNext inside of join led to skipping some of the tuples which should have been matched. The idea of continuations might actually have some use here. The correct functionality was implemented by saving the "position" of the outer-loop as a global variable. 
+
+  Exercise 2:
+    Aggregations were relatively straightforward. Within the IntegerAggregator class, we built a class called aggregateHelper, which always maintains min, max, avg, sum, and count, and will present the proper aggregation when called upon.
+    The StringAggregator was also straightforward.   
+
+  Exercise 3:
+    HeapPage and HeapFile were straightfoward to implement. We used the iterator from the Lab1 solution to assure correctness. All other code is from our original Lab1 Implementation.
+    Number of pages in lab1 was fixed, so we had to replace all global variable calls to function calls, which help maintain a dynamic page table.
+
+  Exercise 4:
+    Per the spec, fetchNext it only meant to run once. Insert and Delete were fairly straightforward to implement.
+
+  Exercise 5:
+    The eviction policy is round robin, because it is the most fair way to assure that we have consistent speed of access. It's implemented using a psuedo-queue (an iterator on a keyset from a concurrent hashmap).
+    The buffer pool was maintained using a concurrent hashmap. The bufferpool also takes responsibility for marking pages dirty. It's fully self-maintained, which allows it to be independent from file structure.
+    Locks and transactions were left unimplemented. Flush all pages was also implemented for no reason, but the spec told us to, so we did it. It will flush all pages, which will write dirty pages back to disk.
+	
+
+CHANGES MADE TO THE API:
+  No changes were made to the skeleton code API.
+
+MISSING / INCOMPLETE ELEMENTS OF CODE:
+None.
+
+TIME / REFLECTIONS ON PROJECT:
+  The project took about 20 hours between us. There were several snags hit at each step, and that's probably because of the file hierarchy - a bug in delete, for example, could be found within 4 files (Delete, Bufferpool, HeapFile, HeapPage). The levels of abstraction are both cool and necessary, but it's a pain in the butt to work with.
