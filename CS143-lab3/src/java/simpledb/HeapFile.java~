@@ -21,7 +21,7 @@ public class HeapFile implements DbFile {
     private int		_numPages;
     
     
-    //// HEAPFILEITERATOR CLASS TAKEN FROM LAB1 SOLUTION PROVIDED
+    //// HEAPFILEITERATOR CLASS TAKEN FROM LAB1 SOLUTION PROVIDED FROM COURSE WEBSITE
     class HeapFileIterator extends AbstractDbFileIterator {
 
     	/**

@@ -1,0 +1,68 @@
+Life of a Query in SimpleDB
+
+    Step 1: simpledb.Parser.main() and simpledb.Parser.start()
+	simpledb.Parser.main() is the entry point for the SimpleDB system. It calls simpledb.Parser.start(). 
+	The latter performs three main actions:
+
+	    1) It populates the SimpleDB catalog from the catalog text file provided by the user as argument
+		(Database.getCatalog().loadSchema(argv[0]);).
+		
+	    2) For each table defined in the system catalog, it computes statistics over the data in the table by calling:
+		TableStats.computeStatistics(), which for each table does: 
+		TableStats s = new TableStats(tableid, IOCOSTPERPAGE);
+		
+		It then stores these statistics to a hash map using: setTableStats(Database.getCatalog().getTableName(tableid), s);
+	    
+	    3) It processes the statements submitted by the user (processNextStatement(new ByteArrayInputStream(statementBytes));)
+	    
+    Step 2: simpledb.Parser.processNextStatement() 
+	This method takes two key actions:
+
+	    1) First, it gets a physical plan for the query by invoking handleQueryStatement((ZQuery)s);
+	    2) Then it executes the query by calling query.execute();
+	    
+    Step 3: simpledb.Parser.handleQueryStatement() 
+	This function works by completing the following steps:
+	
+	    1) It generates the logical and subsequent physical plans via parseQueryLogicalPlan(tId, s) and
+		lp.physicalPlan(tId, TableStats.getStatsMap(), explain); respectively. 
+	    2) Using Java reflection, print out the physical plan.
+	    
+    Step 4: simpledb.Parser.parseQueryLogicalPlan()
+	This function goes through the actual elements of the query, parsing the input query into a naive set of attributes to optimize
+	later:
+	
+	    1) Iterate through the FROM clause, making sure all the tables exist, extracting their names, and 
+		adding scan nodes to the tree: lp.addScan(id, name);
+		
+	    2) Next, it parses the WHERE clause, adding filter and join nodes as needed using processExpression(tid, wx, lp);
+	    
+	    3) Next, it parses the GROUP BY clause (only 1 grouping field is supported) and saves the name of the field (groupByField).
+	    
+	    4) It then parse the SELECT clause, first checking for:
+		a) expressions (which are unsupported), throwing an error if one is found.
+		b) Aggregates, using si.getAggregate(); which only supports aggregates over one field. Adds projection for 
+		    the aggregate field: lp.addProjectField(aggField, aggFun);
+		c) General columns, which it similarly adds a projection field for:
+		    lp.addProjectField(si.getTable() + "." + si.getColumn(), null);
+		    
+	    5) Lastly, checks for an ORDER BY clause. If the ORDER BY is simple and over one attribute, it adds it to the 
+		logical plan: lp.addOrderBy(f.getValue(), oby.getAscOrder());
+		
+    Step 5: simpledb.Parser.processExpression()
+	This function takes an expression (A op B, where A and B are fields, constants, or subqueries) and adds evaluation nodes to
+	the logical plan as necessary:
+	    
+	    - Nested queries are not supported
+	    - OR queries are not supported
+	    - A JOIN node is added if A and B are fields or one (or both) of them is a query (where B can be a nested query)
+	    - A FILTER node is added if A or B is a constant. 
+	
+    Step 6: simpledb.LogicalPlan.physicalPlan()
+	This function returns a calculated "optimal" plan based on the logical plan and a strategic ordering of joins.
+	    
+	    1) It first gathers all the stats about the tables in question (used for calculations)
+	    
+	    2) It then does similar steps with all the filters that need to be done (used for calculations)
+	    
+	    3) 

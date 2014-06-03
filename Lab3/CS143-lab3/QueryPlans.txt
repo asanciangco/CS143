@@ -1,0 +1,121 @@
+(Query done on the 10% database)
+
+Added table : Actor with schema INT_TYPE[0](id[0]),STRING_TYPE[1](fname[1]),STRING_TYPE[2](lname[2]),STRING_TYPE[3](gender[3])
+Added table : Movie with schema INT_TYPE[0](id[0]),STRING_TYPE[1](name[1]),INT_TYPE[2](year[2])
+Added table : Director with schema INT_TYPE[0](id[0]),STRING_TYPE[1](fname[1]),STRING_TYPE[2](lname[2])
+
+
+Added table : Casts with schema INT_TYPE[0](pid[0]),INT_TYPE[1](mid[1]),STRING_TYPE[2](role[2])
+Added table : Movie_Director with schema INT_TYPE[0](did[0]),INT_TYPE[1](mid[1])
+Added table : Genre with schema INT_TYPE[0](mid[0]),STRING_TYPE[1](genre[1])
+Computing table stats.
+Done.
+Explain mode enabled.
+SimpleDB> select d.fname, d.lname
+SimpleDB> from Actor a, Casts c, Movie_Director m, Director d
+SimpleDB> where a.id=c.pid and c.mid=m.mid and m.did=d.id 
+SimpleDB> and a.fname='John' and a.lname='Spicer';
+Started a new transaction tid = 0
+Added scan of table a
+Added scan of table c
+Added scan of table m
+Added scan of table d
+Added join between a.id and c.pid
+Added join between c.mid and m.mid
+Added join between m.did and d.id
+Added select list field d.fname
+Added select list field d.lname
+The query plan is:
+                                            π(d.fname,d.lname),card:1
+                                            |
+                                            ⨝(m.did=d.id),card:1
+                   _________________________|_________________________
+                   |                                                 |
+                   ⨝(a.id=c.pid),card:1                              |
+  _________________|__________________                               |
+  |                                  |                               |
+  σ(a.lname=Spicer),card:1           ⨝(c.mid=m.mid),card:0           |
+  |                           _______|________                       |
+  σ(a.fname=John),card:1      |              |                       |
+  |                         scan(Casts c)  scan(Movie_Director m)  scan(Director d)
+scan(Actor a)
+
+d.fname	d.lname	
+------------------------
+
+ 0 rows.
+Transaction 0 committed.
+----------------
+0.13 seconds
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+Explaination
+============
+The optimizer selected this plan because it calculated that the join order ((a(cm))d),
+meaning that joinging cm first yeilded the least tuples, followed by a with cm, which
+in turn is joined with d. 
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+SQL Query of My Choice
+======================
+
+The query I chose:
+------------------
+select d.lname                                                
+from Actor a, Casts c, Movie_Director m, Director d, Genre g  
+where a.id=c.pid and c.mid=m.mid and m.did=d.id and g.mid=m.mid
+and g.genre='Comedy';
+
+Output:
+-------
+SimpleDB> select d.lname                                                
+SimpleDB> from Actor a, Casts c, Movie_Director m, Director d, Genre g  
+SimpleDB> where a.id=c.pid and c.mid=m.mid and m.did=d.id and g.mid=m.mid
+SimpleDB> and g.genre='Comedy';                                          
+Started a new transaction tid = 3
+Added scan of table a
+Added scan of table c
+Added scan of table m
+Added scan of table d
+Added scan of table g
+Added join between a.id and c.pid
+Added join between c.mid and m.mid
+Added join between m.did and d.id
+Added join between g.mid and m.mid
+Added select list field d.lname
+The query plan is:
+                                                  π(d.lname),card:1
+                                                  |
+                                                  ⨝(m.did=d.id),card:1
+                __________________________________|__________________________________
+                |                                                                   |
+                ⨝(a.id=c.pid),card:1                                                |
+  ______________|_______________                                                    |
+  |                            |                                                    |
+  |                            ⨝(c.mid=m.mid),card:1                                |
+  |              ______________|_______________                                     |
+  |              |                            |                                     |
+  |              |                            ⨝(g.mid=m.mid),card:1                 |
+  |              |              ______________|______________                       |
+  |              |              |                           |                       |
+  |              |              σ(g.genre=Comedy),card:1    |                       |
+  |            scan(Casts c)    |                           |                     scan(Director d)
+scan(Actor a)                 scan(Genre g)               scan(Movie_Director m)
+
+d.lname	
+------------
+
+ 0 rows.
+Transaction 3 committed.
+----------------
+0.04 seconds
+
+///////////////////////////////////////////////////////////////////////////////////////
+The query optimizer chose this plan (which didn't end up becoming a perfect left-deep 
+plan) because it determined that filtering out comedies from the Genre table, then
+joining the results with the Movie_Director table would cost the least. Further, joining
+Casts with that result second, and so on with Actors until finally the results are
+joined with Director. The deepest level of the tree indicates the most optimal join and
+is therefore scheduled to execute first.

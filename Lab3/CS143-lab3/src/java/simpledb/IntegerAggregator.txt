@@ -1,0 +1,188 @@
+package simpledb;
+
+import java.util.*;
+
+/**
+ * Knows how to compute some aggregate over a set of IntFields.
+ */
+public class IntegerAggregator implements Aggregator {
+
+    private static final long serialVersionUID = 1L;
+
+    private int gbField;
+    private Type gbFieldType;
+    private int aField;
+    private Op opItself;
+    private HashMap<Field, int[]> GrouptoResult; 	// map Group to an Int array {COUNT, AVG, SUM, MIN, MAX, SUM_COUNT, SC_AVG}
+    private TupleDesc td;
+    /**
+     * Aggregate constructor
+     * 
+     * @param gbfield
+     *            the 0-based index of the group-by field in the tuple, or
+     *            NO_GROUPING if there is no grouping
+     * @param gbfieldtype
+     *            the type of the group by field (e.g., Type.INT_TYPE), or null
+     *            if there is no grouping
+     * @param afield
+     *            the 0-based index of the aggregate field in the tuple
+     * @param what
+     *            the aggregation operator
+     */
+
+    public IntegerAggregator(int gbfield, Type gbfieldtype, int afield, Op what) {
+        // some code goes here
+    	gbField = gbfield;
+    	gbFieldType = gbfieldtype;
+    	aField = afield;
+    	opItself = what;
+    	GrouptoResult = new HashMap<Field, int[]>();
+    	td = null;
+    }
+
+    /**
+     * Merge a new tuple into the aggregate, grouping as indicated in the
+     * constructor
+     * 
+     * @param tup
+     *            the Tuple containing an aggregate field and a group-by field
+     */
+    public void mergeTupleIntoGroup(Tuple tup) {
+    	
+    	if(tup.getField(aField) == null)
+    		return;
+    	
+    	if (td == null)
+			td = createTd(tup);
+ 
+    	int opResult[] = new int[7];										// 7 entries for holding values for 7 different aggregates
+    	int tupAggVal = ((IntField) tup.getField(aField)).getValue();		// storing the tuple's aggregating value
+    	Field tupGrpVal;													// storing the group field
+    	
+    	if(gbField == Aggregator.NO_GROUPING)
+    		tupGrpVal = new IntField(Aggregator.NO_GROUPING);
+    	else
+    		tupGrpVal = tup.getField(gbField);
+    	
+    	boolean isNewGroup = GrouptoResult.get(tupGrpVal)[0] == 0;			// indicate whether it's a new group
+
+    	// since for every case that a tuple comes in
+    	// the count will be incremented by 1
+    	
+    	if(isNewGroup)								// meaning count equals 0
+    		opResult[0] = 1;												// set new group and set count to 1
+    	else
+    		opResult[0] = GrouptoResult.get(tupGrpVal)[0] + 1;				// find that group and increment the count by 1
+    	int count = opResult[0];											// count of numbers of entry of that group
+    	
+    	// consider every different case with operators
+    	
+    	switch(opItself)
+    	{
+    	case COUNT:	
+    		break;
+    		
+    	case AVG:
+    		if(isNewGroup)				
+    			opResult[1] = tupAggVal;
+    		else
+    			opResult[1] = (tupAggVal + GrouptoResult.get(tupGrpVal)[1] * (count-1))/count;
+    		break;
+    		
+    	case SUM:
+    		if(isNewGroup)
+    			opResult[2] = tupAggVal;
+    		else
+    			opResult[2] = tupAggVal + GrouptoResult.get(tupGrpVal)[2];
+    		break;
+    		
+    	case MIN:
+    		if(isNewGroup)
+    			opResult[3] = tupAggVal;
+    		else
+    			opResult[3] = Math.min(tupAggVal, GrouptoResult.get(tupGrpVal)[3]);
+    		break;
+    		
+    	case MAX:
+    		if(isNewGroup)
+    			opResult[4] = tupAggVal;
+    		else
+    			opResult[4] = Math.max(tupAggVal, GrouptoResult.get(tupGrpVal)[4]);
+    		break;			
+    	}
+    	
+    	// put the tup's data into the hashmap
+    	GrouptoResult.put(tupGrpVal, opResult);
+    }
+    
+    public TupleDesc createTd(Tuple tup)
+    {
+    	// use the TupleDesc constructor
+    	
+    	String[] tmpStr;
+    	Type[] tmpType;
+    	
+    	String aggField = tup.getTupleDesc().getFieldName(aField);
+    	String groupField = tup.getTupleDesc().getFieldName(gbField);
+    	Type groupType = tup.getTupleDesc().getFieldType(gbField);
+    	
+    	// test if there is a grouping or not
+    	if(gbField == Aggregator.NO_GROUPING)
+    	{
+    		tmpStr = new String[]{aggField};
+    		tmpType = new Type[]{Type.INT_TYPE};
+    	}
+    	else
+    	{
+    		tmpStr = new String[]{groupField, aggField};		// first entry should be the group, second should be the agg
+    	    tmpType = new Type[]{groupType, Type.INT_TYPE};
+    	}
+    	
+    	TupleDesc tmpTd = new TupleDesc(tmpType, tmpStr);
+    	return tmpTd;
+    }
+
+    /**
+     * Create a DbIterator over group aggregate results.
+     * 
+     * @return a DbIterator whose tuples are the pair (groupVal, aggregateVal)
+     *         if using group, or a single (aggregateVal) if no grouping. The
+     *         aggregateVal is determined by the type of aggregate specified in
+     *         the constructor.
+     */
+
+    
+    public DbIterator iterator() {
+    	
+   	 //
+   	 // 			*****************
+   	 //				* count	*		*		// if there is no grouping for a tuple
+   	 //				*****************
+   	 // 			* group	* count	*		// if there is a grouping for a tuple
+   	 //				*****************
+   	 //
+   	
+   	Tuple tmpTup;
+   	ArrayList<Tuple> tmpArr = new ArrayList<Tuple>();
+   	
+   	for(Field groupField : GrouptoResult.keySet())
+   	{
+       	tmpTup = new Tuple(td);
+
+   		if(((IntField)groupField).getValue() == Aggregator.NO_GROUPING)			// meaning there is no grouping
+   			tmpTup.setField(0, new IntField (GrouptoResult.get(groupField)[0]));
+   		else
+   		{
+   			tmpTup.setField(0, groupField);
+			tmpTup.setField(1, new IntField (GrouptoResult.get(groupField)[0]));
+   		}
+   			
+   		tmpArr.add(tmpTup);					// pop up the arr with tuples
+   	}
+   	
+   	TupleIterator tI = new TupleIterator(td, tmpArr);
+   	return tI;
+   	
+       //throw new UnsupportedOperationException("please implement me for lab2");
+   }
+}

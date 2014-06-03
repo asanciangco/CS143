@@ -1,0 +1,31 @@
+Alex Sanciangco
+704050064
+Lab 3 Writeup
+
+***NOTE: I used the provided solution for Lab 2 as a basis to begin lab 3***
+
+Design Decisions
+================
+Selectivity estimation follows the methods described in the spec. The only
+helper method made is used to calculate which bucket of the histogram the value
+falls in.
+Joins were implemented using nested loop joins and the join ordering was
+implemented using the algorithm described in the spec (Selinger Algorithm).
+No additional bonus exercises were implemented.
+
+API Changes
+===========
+No changes were made to the project's API. 
+
+Missing or Incomplete Elements of Code
+======================================
+All exercises and tasks were implemented fully. My project passes all tests and
+system tests. Therefore, there are no missing or incomplete elements of code.
+
+Time Spent on Lab
+=================
+I spent around 20 hours on this lab. The only difficult part of the lab was the
+estimateSelectivity implementation. There seemed to be some freedom as to how
+exactly to implement the calculations, and as such it was tricky to find an
+implementation that was robust enough to pass all the tests yet simple enough to
+quickly estimate the selectivity. 
